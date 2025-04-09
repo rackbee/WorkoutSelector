@@ -50,12 +50,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val selectWorkoutViewModel = SelectWorkoutViewModel()
-            selectWorkoutViewModel.init2()
             WorkoutSelectorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SelectWorkout( viewModel = selectWorkoutViewModel,
-                        modifier = Modifier.padding(innerPadding)
+                    SelectWorkout( modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
