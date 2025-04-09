@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,19 +30,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-data class Workout( val id: Int,
-                    var name: String,
-                    var muscleGroup: String,
-                    var ppl: String )
+
 
 @Composable
-fun SelectWorkout( modifier: Modifier = Modifier ) {
+fun SelectWorkout( viewModel: SelectWorkoutViewModel, modifier: Modifier = Modifier ) {
 
     var numExerciseExpanded by remember { mutableStateOf(false) }
-    var numExercises by remember { mutableStateOf(5) }
     var workoutTypeExpanded by remember { mutableStateOf(false) }
-    var workoutSelectedName by remember { mutableStateOf("Workout: Select") }
-    var workoutSelectedType by remember { mutableStateOf(0) }
+    var workoutSubTypeExpanded by remember { mutableStateOf(false) }
+    // var workoutType by remember {mutableStateOf(viewModel.workoutType)}
+    // var workoutSubType by remember{mutableStateOf(viewModel.workoutSubType)}
+
+
+    val workoutTypes = viewModel.GetTypeOptions()
+    val workoutSubTypes = viewModel.GetSubTypeOptions(viewModel.workoutState.value.workoutType)
 
     Column(
         modifier = modifier
@@ -58,7 +60,7 @@ fun SelectWorkout( modifier: Modifier = Modifier ) {
         Box() {
             Button(onClick = { numExerciseExpanded = true }) {
                 Row() {
-                    Text(text = "Num Exercises: ${numExercises}",
+                    Text(text = "Num Exercises: ${viewModel.numExercises.value}",
                          style = MaterialTheme.typography.bodyMedium)
                     Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
                 }
@@ -66,38 +68,13 @@ fun SelectWorkout( modifier: Modifier = Modifier ) {
                     expanded = numExerciseExpanded,
                     onDismissRequest = { numExerciseExpanded = false })
                 {
-                    DropdownMenuItem(text = { Text("1") }, onClick = {
-                        numExercises = 1
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("2") }, onClick = {
-                        numExercises = 2
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("3") }, onClick = {
-                        numExercises = 3
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("4") }, onClick = {
-                        numExercises = 4
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("5") }, onClick = {
-                        numExercises = 5
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("6") }, onClick = {
-                        numExercises = 6
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("7") }, onClick = {
-                        numExercises = 7
-                        numExerciseExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("8") }, onClick = {
-                        numExercises = 8
-                        numExerciseExpanded = false
-                    })
+                    for ( num in 1 .. 8 ) {
+
+                        DropdownMenuItem(text = { Text(num.toString()) }, onClick = {
+                            viewModel.numExercises.value = num
+                            numExerciseExpanded = false
+                        })
+                    }
                 }
             }
         }
@@ -106,7 +83,7 @@ fun SelectWorkout( modifier: Modifier = Modifier ) {
         Box() {
             Button(onClick = { workoutTypeExpanded = true }) {
                 Row() {
-                    Text(text = workoutSelectedName,
+                    Text(text = "Workout Type: ${viewModel.workoutState.value.workoutType.name}",
                         style = MaterialTheme.typography.bodyMedium)
                     Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
                 }
@@ -114,24 +91,41 @@ fun SelectWorkout( modifier: Modifier = Modifier ) {
                     expanded = workoutTypeExpanded,
                     onDismissRequest = { workoutTypeExpanded = false })
                 {
-                    DropdownMenuItem(text = { Text("Full Body") }, onClick = {
-                        workoutSelectedType = 1
-                        workoutSelectedName = "Workout: Full Body"
-                        workoutTypeExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("Push, Pull, Legs") }, onClick = {
-                        workoutSelectedType = 2
-                        workoutSelectedName = "Workout: Push, Pull, Legs"
-                        workoutTypeExpanded = false
-                    })
-                    DropdownMenuItem(text = { Text("Bro Split") }, onClick = {
-                        workoutSelectedType = 3
-                        workoutSelectedName = "Workout: Bro Split"
-                        workoutTypeExpanded = false
-                    })
+                    for ( type in workoutTypes) {
+                        DropdownMenuItem(text = { Text( type.name )}, onClick = {
+                            viewModel.SetWorkoutType( type, viewModel.GetSubTypeOptions(type).get(0) )
+                            // workoutType = viewModel.workoutType
+                            workoutTypeExpanded = false
+                        })
+                    }
                 }
+
             }
         }
+
+        Box() {
+            Button(onClick = { workoutSubTypeExpanded = true }) {
+                Row() {
+                    Text(text = "Workout Type: ${viewModel.workoutState.value.workoutSubType.name}",
+                        style = MaterialTheme.typography.bodyMedium)
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
+                }
+                DropdownMenu(
+                    expanded = workoutSubTypeExpanded,
+                    onDismissRequest = { workoutSubTypeExpanded = false })
+                {
+                    for ( type in workoutSubTypes) {
+                        DropdownMenuItem(text = { Text( type.name )}, onClick = {
+                            viewModel.SetWorkoutType( viewModel.workoutState.value.workoutType, type)
+                            // workoutSubType = viewModel.workoutSubType
+                            workoutSubTypeExpanded = false
+                        })
+                    }
+                }
+
+            }
+        }
+
         Button(onClick = {}) {
             Text(text = "Go",
                 style = MaterialTheme.typography.headlineLarge)

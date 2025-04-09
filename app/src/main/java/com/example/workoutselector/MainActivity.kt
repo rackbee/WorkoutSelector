@@ -50,9 +50,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val selectWorkoutViewModel = SelectWorkoutViewModel()
+            selectWorkoutViewModel.init2()
             WorkoutSelectorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SelectWorkout(
+                    SelectWorkout( viewModel = selectWorkoutViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -67,5 +69,5 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true)
 @Composable
 fun LayoutPreview() {
-    SelectWorkout()
+//    SelectWorkout()
 }
