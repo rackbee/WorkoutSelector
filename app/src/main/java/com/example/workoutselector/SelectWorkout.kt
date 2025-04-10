@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -96,15 +97,23 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
     var isExpanded by remember { mutableStateOf(false) }
 
     var curName = ""
-    var workoutOptions : List<WorkoutType>
+    var workoutOptions : List<WorkoutType> = listOf()
+    var workoutSubTypeOptions : List<WorkoutSubType> = listOf()
+    var typeNames : MutableList<String> = mutableListOf()
     when ( topField ) {
         true -> {
-            curName = viewModel.GetWorkoutType().name
+            curName = viewModel.GetWorkoutTypeName(viewModel.GetWorkoutType())
             workoutOptions = viewModel.GetTypeOptions()
+            for ( next in workoutOptions ) {
+                typeNames.add( viewModel.GetWorkoutTypeName(next))
+            }
         }
         false -> {
-            curName = viewModel.GetSubWorkoutType().name
-            workoutOptions = viewModel.GetSubTypeOptions( viewModel.GetWorkoutType())
+            curName = viewModel.GetWorkoutSubTypeName(viewModel.GetSubWorkoutType())
+            workoutSubTypeOptions = viewModel.GetSubTypeOptions( viewModel.GetWorkoutType())
+            for ( next in workoutSubTypeOptions ) {
+                typeNames.add( viewModel.GetWorkoutSubTypeName(next))
+            }
         }
     }
 
@@ -119,24 +128,28 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
             }
             DropdownMenu(
                 expanded = isExpanded,
-                onDismissRequest = { isExpanded = false })
-            {
-                for (type in workoutOptions) {
-                    DropdownMenuItem(text = { Text(type.name) }, onClick = {
+                onDismissRequest = { isExpanded = false }) {
+
+                for ( i in 0 .. typeNames.size-1) {
+                    DropdownMenuItem(text = { Text(typeNames[i]) }, onClick = {
                         when (topField) {
                             true -> {
-                                viewModel.SetWorkoutType(type, viewModel.GetSubTypeOptions(type).get(0))
+                                viewModel.SetWorkoutType(
+                                    workoutOptions[i],
+                                    viewModel.GetSubTypeOptions(workoutOptions[i]).get(0)
+                                )
                             }
                             false -> {
-                                viewModel.SetWorkoutType(viewModel.GetWorkoutType(), type)
+                                viewModel.SetWorkoutType(viewModel.GetWorkoutType(), workoutSubTypeOptions[i])
                             }
                         }
+
                         isExpanded = false
                     })
                 }
             }
-
         }
+
     }
 }
 
@@ -145,17 +158,21 @@ fun WorkoutList( viewModel: SelectWorkoutViewModel, modifier: Modifier = Modifie
 
     LazyColumn( modifier = Modifier.fillMaxSize().padding(8.dp)) {
         items(viewModel.GetWorkouts()) { workout ->
-            Workout(workout)
+            Workout(viewModel, workout)
         }
     }
 }
 
 @Composable
-fun Workout(workout:Workout, modifier: Modifier = Modifier ) {
+fun Workout(viewModel : SelectWorkoutViewModel, workout:Workout, modifier: Modifier = Modifier ) {
     Box(modifier = Modifier.fillMaxSize().padding(8.dp).clip(shape = RoundedCornerShape(10.dp)).background(color = Color.DarkGray)) {
-        Row(modifier = Modifier.fillMaxSize().padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(modifier = Modifier.fillMaxSize().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = workout.name)
-            Text(text = workout.muscleGroup)
+            val muscleGroup = viewModel.GetWorkoutSubTypeName(workout.muscleGroup)
+            Text(text = muscleGroup)
+            Button( onClick = { viewModel.ReplaceWorkout(workout)} ) {
+                Icon(Icons.Default.Refresh, contentDescription = "")
+            }
         }
     }
 }
