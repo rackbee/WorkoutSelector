@@ -60,7 +60,7 @@ class WorkoutGenerator() {
         }
     }
 
-    fun PopulateWorkouts() {
+    private fun PopulateWorkouts() {
         workouts.add( Workout(workouts.size+1, name = "Overhead Dumbbell Press", muscleGroup = WorkoutSubType.Shoulders, ppl = WorkoutSubType.Push ))
         workouts.add( Workout(workouts.size+1, name = "Standing Shoulder Fly", muscleGroup = WorkoutSubType.Shoulders, ppl = WorkoutSubType.Pull ))
         workouts.add( Workout(workouts.size+1, name = "Bent Over Shoulder Fly", muscleGroup = WorkoutSubType.Shoulders, ppl = WorkoutSubType.Pull ))
@@ -120,19 +120,16 @@ class WorkoutGenerator() {
         workouts.add( Workout(workouts.size+1, name = "Side Leg Curl", muscleGroup = WorkoutSubType.Legs, ppl = WorkoutSubType.Legs ))
         workouts.add( Workout(workouts.size+1, name = "Sumo Deadlift", muscleGroup = WorkoutSubType.Legs, ppl = WorkoutSubType.Legs ))
 
-
-
-
-
     }
-    fun match(workout: Workout, workoutType: WorkoutType, workoutSubType : WorkoutSubType) : Boolean {
+
+    private fun match(workout: Workout, workoutType: WorkoutType, workoutSubType : WorkoutSubType) : Boolean {
 
         if ( workoutType == WorkoutType.PPL )
         {
             return workout.ppl == workoutSubType;
         }
 
-        if ( workoutType == WorkoutType.Split )
+        if ( workoutType == WorkoutType.Split || workoutType == WorkoutType.FullBody )
         {
             return workout.muscleGroup == workoutSubType;
         }
@@ -140,7 +137,7 @@ class WorkoutGenerator() {
         return false;
     }
 
-    fun notMatch( workout: Workout, workoutType: WorkoutType, workoutSubType : WorkoutSubType ) : Boolean{
+    private fun notMatch( workout: Workout, workoutType: WorkoutType, workoutSubType : WorkoutSubType ) : Boolean{
         return !match(workout,workoutType, workoutSubType)
     }
 
@@ -152,7 +149,7 @@ class WorkoutGenerator() {
         }
     }
 
-    fun GenerateFullBodyWorkout() : List<Workout> {
+    private fun GenerateFullBodyWorkout() : List<Workout> {
         val result : MutableList<Workout> = mutableListOf()
         result.add(GenerateSplitWorkout(WorkoutSubType.Legs, 1).get(0))
         result.add(GenerateSplitWorkout(WorkoutSubType.Shoulders, 1).get(0))
@@ -162,15 +159,28 @@ class WorkoutGenerator() {
         return result;
     }
 
-    fun GeneratePPLWorkout( workoutSubType: WorkoutSubType, numExercises : Int ) : List<Workout> {
-
-        val result : MutableList<Workout> = mutableListOf()
+    private fun PrunePPLWorkout(workoutSubType : WorkoutSubType) : MutableList<Workout> {
         // Eliminate all non-candidate workouts
         val trimmedWorkouts = workouts.toMutableList()
         trimmedWorkouts.removeIf {
             notMatch( it, WorkoutType.PPL, workoutSubType)
         }
+        return trimmedWorkouts;
+    }
 
+    private fun PruneSplitWorkout(workoutSubType : WorkoutSubType) : MutableList<Workout> {
+        // Eliminate all non-candidate workouts
+        val trimmedWorkouts = workouts.toMutableList()
+        trimmedWorkouts.removeIf {
+            notMatch( it, WorkoutType.Split, workoutSubType)
+        }
+        return trimmedWorkouts;
+    }
+
+    private fun GeneratePPLWorkout( workoutSubType: WorkoutSubType, numExercises : Int ) : List<Workout> {
+
+        val result : MutableList<Workout> = mutableListOf()
+        val trimmedWorkouts = PrunePPLWorkout( workoutSubType )
         GetNumOfRandomWorkoutToList( trimmedWorkouts, result, numExercises)
 
         return result
@@ -178,15 +188,10 @@ class WorkoutGenerator() {
 
 
 
-    fun GenerateSplitWorkout( workoutSubType: WorkoutSubType, numExercises : Int ) : List<Workout> {
+    private fun GenerateSplitWorkout( workoutSubType: WorkoutSubType, numExercises : Int ) : List<Workout> {
 
         val result : MutableList<Workout> = mutableListOf()
-        // Eliminate all non-candidate workouts
-        val trimmedWorkouts = workouts.toMutableList()
-        trimmedWorkouts.removeIf {
-            notMatch( it, WorkoutType.Split, workoutSubType)
-        }
-
+        val trimmedWorkouts = PruneSplitWorkout( workoutSubType )
         GetNumOfRandomWorkoutToList( trimmedWorkouts, result, numExercises)
 
         return result
@@ -222,6 +227,50 @@ class WorkoutGenerator() {
             return workouts[0]
 
         return workouts[Random.nextInt(0, workouts.size)]
+    }
+
+    fun ReplaceWorkout( currentWorkouts : List<Workout>, toReplace : Workout?, workoutType : WorkoutType, workoutSubType : WorkoutSubType ) : Workout? {
+
+        if  ( workoutType == WorkoutType.FullBody) {
+            val newWorkouts = workouts.toMutableList()
+
+            if ( toReplace != null )
+                newWorkouts.removeIf{ notMatch( toReplace, WorkoutType.Split, toReplace.muscleGroup) }
+
+            // Remove other non candidate workouts
+            if ( toReplace != null )
+                newWorkouts.removeIf{ it == toReplace }
+            for ( next in currentWorkouts ) {
+                newWorkouts.removeIf{ it == next }
+            }
+
+            if (newWorkouts.size == 0)
+                return null
+
+            return newWorkouts[Random.nextInt(0,newWorkouts.size)]
+        }
+
+        var newWorkouts : MutableList<Workout> = mutableListOf<Workout>()
+
+        if ( workoutType == WorkoutType.PPL) {
+            newWorkouts = PrunePPLWorkout( workoutSubType )
+        }
+
+        if ( workoutType == WorkoutType.Split) {
+            newWorkouts = PruneSplitWorkout(workoutSubType)
+        }
+
+        // Remove other non candidate workouts
+        if ( toReplace != null )
+            newWorkouts.removeIf{ it == toReplace }
+        for ( next in currentWorkouts ) {
+            newWorkouts.removeIf{ it == next }
+        }
+
+        if (newWorkouts.size == 0)
+            return null
+
+        return newWorkouts[Random.nextInt(0,newWorkouts.size)]
     }
 
 
