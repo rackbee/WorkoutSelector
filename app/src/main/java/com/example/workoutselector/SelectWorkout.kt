@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,9 +32,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,44 +56,77 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
+fun SelectWorkoutContainer(modifier: Modifier = Modifier, viewModel: SelectWorkoutViewModel = viewModel() ) {
+    Scaffold( modifier = Modifier.fillMaxSize(),
+        topBar = {SelectWorkoutTopBar()},
+        floatingActionButton = {SelectWorkoutActionButtons(viewModel = viewModel)})
+    { padding ->
+        SelectWorkout( modifier = Modifier.padding(padding), viewModel = viewModel);
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectWorkoutTopBar( modifier: Modifier = Modifier ) {
+    TopAppBar( modifier = Modifier,
+                colors = TopAppBarColors(containerColor = Color.DarkGray,
+                    scrolledContainerColor = Color.Green,
+                    navigationIconContentColor = Color.Blue,
+                    actionIconContentColor = Color.Cyan,
+                    titleContentColor = Color.White ),
+                title = { Text( text = "Select your Workout")})
+}
+
+@Composable
+fun SelectWorkoutActionButtons( modifier: Modifier = Modifier, viewModel: SelectWorkoutViewModel ) {
+    AddRemove( viewModel = viewModel );
+}
+
+@Composable
 fun SelectWorkout(modifier: Modifier = Modifier, viewModel: SelectWorkoutViewModel = viewModel() ) {
 
     Column(
-        modifier = Modifier.padding(vertical = 48.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            style = MaterialTheme.typography.headlineLarge,
-            text = "Get your workout!"
-        )
 
-        NumExerciseSelector(viewModel = viewModel)
+        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Column( modifier = Modifier, verticalArrangement = Arrangement.Center) {
+                NumExerciseSelector(viewModel = viewModel)
+            }
+            Column ( modifier = Modifier, ) {
+                WorkoutSelector(viewModel = viewModel, topField = true)
+                WorkoutSelector(viewModel = viewModel, topField = false)
+            }
+            Column {
+                Button(onClick = { viewModel.UpdateWorkouts() },
+                    shape = CircleShape,
+                    modifier = Modifier.size(80.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonColors(
+                        containerColor = Color.Blue,
+                        contentColor = Color.White,
+                        disabledContainerColor = Color.Blue,
+                        disabledContentColor = Color.White)) {
+                    Text(
+                        text = "Go",
 
-        WorkoutSelector(viewModel = viewModel, topField = true)
-        WorkoutSelector(viewModel = viewModel, topField = false)
-
-        Button(onClick = { viewModel.UpdateWorkouts() },
-            shape = CircleShape,
-            modifier = Modifier.size(80.dp),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonColors(
-                containerColor = Color.Blue,
-                contentColor = Color.White,
-                disabledContainerColor = Color.Blue,
-                disabledContentColor = Color.White)) {
-            Text(
-                text = "Go",
-
-                style = MaterialTheme.typography.headlineSmall
-            )
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
+            }
         }
+
+
         Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.fillMaxSize()) {
                 WorkoutList(viewModel)
 
-                Row( modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    AddRemove(viewModel)
-                }
+//                Row( modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+//                    AddRemove(viewModel)
+//                }
 
             }
         }
@@ -101,9 +139,13 @@ fun NumExerciseSelector( viewModel: SelectWorkoutViewModel, modifier: Modifier =
     var numExerciseExpanded by remember { mutableStateOf(false) }
 
     Box() {
-        Button(onClick = { numExerciseExpanded = true }) {
+        Button(onClick = { numExerciseExpanded = true },
+               colors =  ButtonColors( contentColor = Color.White,
+                                        containerColor = Color.DarkGray,
+                                        disabledContentColor = Color.White,
+                                        disabledContainerColor = Color.DarkGray)) {
             Row() {
-                Text(text = "Num Exercises: ${viewModel.GetNumExercises()}",
+                Text(text = "# ${viewModel.GetNumExercises()}",
                     style = MaterialTheme.typography.bodyMedium)
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
             }
@@ -149,10 +191,15 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
     }
 
     Box() {
-        Button(onClick = { isExpanded = true }) {
+        Button(
+            onClick = { isExpanded = true },
+            colors =  ButtonColors( contentColor = Color.White,
+            containerColor = Color.DarkGray,
+            disabledContentColor = Color.White,
+            disabledContainerColor = Color.DarkGray)) {
             Row() {
-                Text(
-                    text = "Workout Type: ${curName}",
+                Text(modifier = Modifier,
+                    text = "${curName}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
@@ -195,8 +242,14 @@ fun WorkoutList( viewModel: SelectWorkoutViewModel, modifier: Modifier = Modifie
 
 @Composable
 fun WorkoutItem(viewModel : SelectWorkoutViewModel, workout:Workout, modifier: Modifier = Modifier ) {
-    Box(modifier = Modifier.fillMaxSize().padding(8.dp).clip(shape = RoundedCornerShape(10.dp)).background(color = Color.DarkGray)) {
-        Row(modifier = Modifier.fillMaxSize().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)
+        .clip(shape = RoundedCornerShape(10.dp))
+        .background(color = Color.DarkGray)) {
+        Row(modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = workout.name)
             val muscleGroup = viewModel.GetWorkoutSubTypeName(workout.muscleGroup)
             Text(text = muscleGroup)
@@ -218,7 +271,8 @@ fun WorkoutItem(viewModel : SelectWorkoutViewModel, workout:Workout, modifier: M
 
 @Composable
 fun AddRemove(viewModel : SelectWorkoutViewModel, modifier: Modifier = Modifier ) {
-       //if (viewModel.GetShowAdd())
+    Row( modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        //if (viewModel.GetShowAdd())
         Button(
             modifier = Modifier,
             onClick = { viewModel.AddWorkout() },
@@ -227,7 +281,8 @@ fun AddRemove(viewModel : SelectWorkoutViewModel, modifier: Modifier = Modifier 
                 contentColor = Color.Black,
                 disabledContainerColor = Color.Green,
                 disabledContentColor = Color.Black
-            )) {
+            )
+        ) {
             Icon(Icons.Default.Add, contentDescription = "")
         }
 
@@ -243,4 +298,5 @@ fun AddRemove(viewModel : SelectWorkoutViewModel, modifier: Modifier = Modifier 
         ) {
             Icon(Icons.Default.Clear, contentDescription = "")
         }
+    }
 }
