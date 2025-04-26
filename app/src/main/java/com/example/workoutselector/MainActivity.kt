@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WorkoutSelectorTheme {
-                SelectWorkoutContainer( modifier = Modifier.fillMaxSize());
+                Navigation()
             }
         }
     }

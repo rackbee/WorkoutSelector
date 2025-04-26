@@ -1,27 +1,18 @@
 package com.example.workoutselector
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -61,7 +52,7 @@ fun SelectWorkoutContainer(modifier: Modifier = Modifier, viewModel: SelectWorko
         topBar = {SelectWorkoutTopBar()},
         floatingActionButton = {SelectWorkoutActionButtons(viewModel = viewModel)})
     { padding ->
-        SelectWorkout( modifier = Modifier.padding(padding), viewModel = viewModel);
+        SelectWorkout( modifier = Modifier.padding(padding), viewModel = viewModel)
     }
 }
 
@@ -79,7 +70,7 @@ fun SelectWorkoutTopBar( modifier: Modifier = Modifier ) {
 
 @Composable
 fun SelectWorkoutActionButtons( modifier: Modifier = Modifier, viewModel: SelectWorkoutViewModel ) {
-    AddRemove( viewModel = viewModel );
+    AddRemove( viewModel = viewModel )
 }
 
 @Composable
@@ -94,12 +85,12 @@ fun SelectWorkout(modifier: Modifier = Modifier, viewModel: SelectWorkoutViewMod
             Column( modifier = Modifier, verticalArrangement = Arrangement.Center) {
                 NumExerciseSelector(viewModel = viewModel)
             }
-            Column ( modifier = Modifier, ) {
+            Column ( modifier = Modifier ) {
                 WorkoutSelector(viewModel = viewModel, topField = true)
                 WorkoutSelector(viewModel = viewModel, topField = false)
             }
             Column {
-                Button(onClick = { viewModel.UpdateWorkouts() },
+                Button(onClick = { viewModel.updateWorkouts() },
                     shape = CircleShape,
                     modifier = Modifier.size(80.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -138,14 +129,14 @@ fun NumExerciseSelector( viewModel: SelectWorkoutViewModel, modifier: Modifier =
 
     var numExerciseExpanded by remember { mutableStateOf(false) }
 
-    Box() {
+    Box {
         Button(onClick = { numExerciseExpanded = true },
                colors =  ButtonColors( contentColor = Color.White,
                                         containerColor = Color.DarkGray,
                                         disabledContentColor = Color.White,
                                         disabledContainerColor = Color.DarkGray)) {
-            Row() {
-                Text(text = "# ${viewModel.GetNumExercises()}",
+            Row {
+                Text(text = "# ${viewModel.getNumExercises()}",
                     style = MaterialTheme.typography.bodyMedium)
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
             }
@@ -155,7 +146,7 @@ fun NumExerciseSelector( viewModel: SelectWorkoutViewModel, modifier: Modifier =
             {
                 for ( num in 1 .. 8 ) {
                     DropdownMenuItem(text = { Text(num.toString()) }, onClick = {
-                        viewModel.SetNumExercises(num)
+                        viewModel.setNumExercises(num)
                         numExerciseExpanded = false
                     })
                 }
@@ -175,31 +166,31 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
     var typeNames : MutableList<String> = mutableListOf()
     when ( topField ) {
         true -> {
-            curName = viewModel.GetWorkoutTypeName(viewModel.GetWorkoutType())
-            workoutOptions = viewModel.GetTypeOptions()
+            curName = viewModel.getWorkoutTypeName(viewModel.getWorkoutType())
+            workoutOptions = viewModel.getTypeOptions()
             for ( next in workoutOptions ) {
-                typeNames.add( viewModel.GetWorkoutTypeName(next))
+                typeNames.add( viewModel.getWorkoutTypeName(next))
             }
         }
         false -> {
-            curName = viewModel.GetWorkoutSubTypeName(viewModel.GetSubWorkoutType())
-            workoutSubTypeOptions = viewModel.GetSubTypeOptions( viewModel.GetWorkoutType())
+            curName = viewModel.getWorkoutSubTypeName(viewModel.getSubWorkoutType())
+            workoutSubTypeOptions = viewModel.getSubTypeOptions( viewModel.getWorkoutType())
             for ( next in workoutSubTypeOptions ) {
-                typeNames.add( viewModel.GetWorkoutSubTypeName(next))
+                typeNames.add( viewModel.getWorkoutSubTypeName(next))
             }
         }
     }
 
-    Box() {
+    Box {
         Button(
             onClick = { isExpanded = true },
             colors =  ButtonColors( contentColor = Color.White,
             containerColor = Color.DarkGray,
             disabledContentColor = Color.White,
             disabledContainerColor = Color.DarkGray)) {
-            Row() {
+            Row {
                 Text(modifier = Modifier,
-                    text = "${curName}",
+                    text = curName,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "")
@@ -208,17 +199,17 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
                 expanded = isExpanded,
                 onDismissRequest = { isExpanded = false }) {
 
-                for ( i in 0 .. typeNames.size-1) {
+                for ( i in 0 ..< typeNames.size-1) {
                     DropdownMenuItem(text = { Text(typeNames[i]) }, onClick = {
                         when (topField) {
                             true -> {
-                                viewModel.SetWorkoutType(
+                                viewModel.setWorkoutType(
                                     workoutOptions[i],
-                                    viewModel.GetSubTypeOptions(workoutOptions[i]).get(0)
+                                    viewModel.getSubTypeOptions(workoutOptions[i])[0]
                                 )
                             }
                             false -> {
-                                viewModel.SetWorkoutType(viewModel.GetWorkoutType(), workoutSubTypeOptions[i])
+                                viewModel.setWorkoutType(viewModel.getWorkoutType(), workoutSubTypeOptions[i])
                             }
                         }
 
@@ -234,7 +225,7 @@ fun WorkoutSelector(viewModel: SelectWorkoutViewModel, topField : Boolean, modif
 @Composable
 fun WorkoutList( viewModel: SelectWorkoutViewModel, modifier: Modifier = Modifier ) {
     LazyColumn(modifier = Modifier.padding(8.dp)) {
-        items(viewModel.GetWorkouts()) { workout ->
+        items(viewModel.getWorkouts()) { workout ->
             WorkoutItem(viewModel, workout)
         }
     }
@@ -251,9 +242,9 @@ fun WorkoutItem(viewModel : SelectWorkoutViewModel, workout:Workout, modifier: M
             .fillMaxSize()
             .padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = workout.name)
-            val muscleGroup = viewModel.GetWorkoutSubTypeName(workout.muscleGroup)
+            val muscleGroup = viewModel.getWorkoutSubTypeName(workout.muscleGroup)
             Text(text = muscleGroup)
-            Button( onClick = { viewModel.ReplaceWorkout(workout)},
+            Button( onClick = { viewModel.replaceWorkout(workout)},
                     shape = CircleShape,
                     modifier = Modifier.size(30.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -275,7 +266,7 @@ fun AddRemove(viewModel : SelectWorkoutViewModel, modifier: Modifier = Modifier 
         //if (viewModel.GetShowAdd())
         Button(
             modifier = Modifier,
-            onClick = { viewModel.AddWorkout() },
+            onClick = { viewModel.addWorkout() },
             colors = ButtonColors(
                 containerColor = Color.Green,
                 contentColor = Color.Black,
@@ -288,7 +279,7 @@ fun AddRemove(viewModel : SelectWorkoutViewModel, modifier: Modifier = Modifier 
 
         Button(
             modifier = Modifier,
-            onClick = { viewModel.RemoveWorkout() },
+            onClick = { viewModel.removeWorkout() },
             colors = ButtonColors(
                 containerColor = Color.Red,
                 contentColor = Color.White,

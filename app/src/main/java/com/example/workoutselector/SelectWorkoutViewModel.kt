@@ -1,10 +1,7 @@
 package com.example.workoutselector
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
@@ -22,67 +19,66 @@ class SelectWorkoutViewModel : ViewModel() {
 
     // State
     // I can fix this by putting both values inside of a single state
-    private val _workoutState = mutableStateOf( WorkoutState( workoutType = GetTypeOptions().get(0), workoutSubType = GetSubTypeOptions(GetTypeOptions().get(0)).get(0), numExercises = 5, sWorkouts = listOf()))
-    val workoutState : State<WorkoutState> = _workoutState
+    private var _workoutState by mutableStateOf( WorkoutState( workoutType = getTypeOptions()[0], workoutSubType = getSubTypeOptions(getTypeOptions()[0])[0], numExercises = 5, sWorkouts = listOf()))
 
-    fun GetNumExercises() : Int {
-        return _workoutState.value.numExercises
+    fun getNumExercises() : Int {
+        return _workoutState.numExercises
     }
 
-    fun SetNumExercises( num : Int ) {
-        _workoutState.value = _workoutState.value.copy( numExercises = num )
+    fun setNumExercises( num : Int ) {
+        _workoutState = _workoutState.copy( numExercises = num )
     }
 
-    fun GetWorkoutType() : WorkoutType {
-        return _workoutState.value.workoutType
+    fun getWorkoutType() : WorkoutType {
+        return _workoutState.workoutType
     }
 
-    fun GetSubWorkoutType() : WorkoutSubType {
-        return _workoutState.value.workoutSubType
+    fun getSubWorkoutType() : WorkoutSubType {
+        return _workoutState.workoutSubType
     }
 
-    fun SetWorkoutType( type: WorkoutType, subtype: WorkoutSubType ) {
-        _workoutState.value = _workoutState.value.copy( workoutType= type, workoutSubType = subtype)
+    fun setWorkoutType( type: WorkoutType, subtype: WorkoutSubType ) {
+        _workoutState = _workoutState.copy( workoutType= type, workoutSubType = subtype)
     }
 
-    fun GetTypeOptions() : List<WorkoutType> {
+    fun getTypeOptions() : List<WorkoutType> {
        return _workoutGenerator.GetWorkoutTypes()
     }
 
-    fun GetSubTypeOptions( workoutType: WorkoutType ) : List<WorkoutSubType> {
+    fun getSubTypeOptions( workoutType: WorkoutType ) : List<WorkoutSubType> {
         return _workoutGenerator.GetWorkoutSubTypes( workoutType )
     }
 
-    fun GetWorkoutTypeName( workoutType : WorkoutType ) : String {
+    fun getWorkoutTypeName( workoutType : WorkoutType ) : String {
         return _workoutGenerator.GetWorkoutTypeName(workoutType)
     }
 
-    fun GetWorkoutSubTypeName( workoutSubType : WorkoutSubType ) : String {
+    fun getWorkoutSubTypeName( workoutSubType : WorkoutSubType ) : String {
         return _workoutGenerator.GetWorkoutSubTypeName(workoutSubType)
     }
 
-    fun GetShowAdd() : Boolean {
-        return _workoutState.value.showAdd
+    fun getShowAdd() : Boolean {
+        return _workoutState.showAdd
     }
 
-    fun SetShowAdd( add : Boolean ) {
-        _workoutState.value = _workoutState.value.copy( showAdd = true)
+    fun setShowAdd( add : Boolean ) {
+        _workoutState = _workoutState.copy( showAdd = true)
     }
 
-    fun GetWorkouts() : List<Workout> {
-        return _workoutState.value.sWorkouts;
+    fun getWorkouts() : List<Workout> {
+        return _workoutState.sWorkouts
     }
 
-    fun UpdateWorkouts() {
-        val result = _workoutGenerator.GenerateWorkout(_workoutState.value.workoutType, _workoutState.value.workoutSubType, _workoutState.value.numExercises )
-        _workoutState.value = _workoutState.value.copy(sWorkouts = result, showAdd = true)
+    fun updateWorkouts() {
+        val result = _workoutGenerator.GenerateWorkout(_workoutState.workoutType, _workoutState.workoutSubType, _workoutState.numExercises )
+        _workoutState = _workoutState.copy(sWorkouts = result, showAdd = true)
     }
 
-    fun ReplaceWorkout( workoutToReplace: Workout ) {
+    fun replaceWorkout( workoutToReplace: Workout ) {
         // Get a new random workout from the model
-        val newWorkout = _workoutGenerator.ReplaceWorkout(_workoutState.value.sWorkouts, workoutToReplace, _workoutState.value.workoutType, _workoutState.value.workoutSubType)
+        val newWorkout = _workoutGenerator.ReplaceWorkout(_workoutState.sWorkouts, workoutToReplace, _workoutState.workoutType, _workoutState.workoutSubType)
 
-        var workouts = _workoutState.value.sWorkouts.toMutableList()
+        var workouts = _workoutState.sWorkouts.toMutableList()
         var workouts2 = workouts.map{ element ->
             if ( element.name == workoutToReplace.name ) {
                 newWorkout ?: element
@@ -91,32 +87,31 @@ class SelectWorkoutViewModel : ViewModel() {
                 element
             }
         }
-        _workoutState.value = _workoutState.value.copy(sWorkouts = workouts2)
+        _workoutState = _workoutState.copy(sWorkouts = workouts2)
     }
 
-    fun AddWorkout() {
+    fun addWorkout() {
 
         // Get a new random workout from the model
-        val newWorkout = _workoutGenerator.ReplaceWorkout(_workoutState.value.sWorkouts, toReplace = null, _workoutState.value.workoutType, _workoutState.value.workoutSubType)
+        val newWorkout = _workoutGenerator.ReplaceWorkout(_workoutState.sWorkouts, toReplace = null, _workoutState.workoutType, _workoutState.workoutSubType)
 
-        if ( newWorkout == null )
-            return
+        newWorkout ?: return
 
-        var workouts = _workoutState.value.sWorkouts.toMutableList()
+        var workouts = _workoutState.sWorkouts.toMutableList()
         workouts.add( newWorkout )
-        _workoutState.value = _workoutState.value.copy(sWorkouts = workouts, numExercises = _workoutState.value.numExercises+1)
+        _workoutState = _workoutState.copy(sWorkouts = workouts, numExercises = _workoutState.numExercises+1)
     }
 
-    fun RemoveWorkout() {
+    fun removeWorkout() {
 
-        var workouts = _workoutState.value.sWorkouts.toMutableList()
+        var workouts = _workoutState.sWorkouts.toMutableList()
 
         if (workouts.size == 0 )
             return
 
         workouts.removeAt( workouts.size-1)
 
-        _workoutState.value = _workoutState.value.copy(sWorkouts = workouts, numExercises = _workoutState.value.numExercises-1)
+        _workoutState = _workoutState.copy(sWorkouts = workouts, numExercises = _workoutState.numExercises-1)
 
     }
 }
